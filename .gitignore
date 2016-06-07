@@ -62,7 +62,8 @@ target/
 .ipynb_checkpoints
 
 *.jpg
-*.png
+b.png
+d.png
 *.html
 testqt.py
 *.pdf

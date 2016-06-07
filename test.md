@@ -1,7 +1,6 @@
 #怒斥香港记者  
   
 ---  
-![江主席](b.png)  
   
 江主席，你觉得[董先生](https://zh.wikiquote.org/wiki/%E8%91%A3%E5%BB%BA%E5%8D%8E)连任好不好啊？  
 好啊。  
@@ -18,5 +17,3 @@
 >Too young,  
 too simple,  
 sometimes naive.  
-  
-ha

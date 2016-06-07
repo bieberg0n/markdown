@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
 #coding:utf-8
 import sys
+import os
 # reload(sys)
 # sys.setdefaultencoding('utf-8')
 # from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QTextEdit, QGridLayout, QMainWindow
@@ -19,14 +21,9 @@ class Thread(QThread):
 
 	def __init__(self, parent=None):
 		super(Thread,self).__init__(parent)
-		# self.browser = browser
-
-	# def setup(self, say):
-	# 	self.say = say
 
 	def run(self):
 		while 1:
-			# self.browser.reload()
 			time.sleep(1)
 			self.trigger.emit(1)
 
@@ -35,19 +32,13 @@ class Md(QWidget):
 
 	def __init__(self, parent=None):
 		super(Md,self).__init__(parent)
-
+		self.file = sys.argv[1]
+		if os.path.isfile(self.file):
+			pass
+		else:
+			open(self.file, 'w')
+		self.filename = '.'.join( self.file.split('.')[:-1] )
 		self.initUI()
-
-	# def print_(self):
-	# 	text = self.textedit1.toPlainText().toUtf8()
-	# 	print(text)
-	# 	with open('/tmp/md.html','w') as f:
-	# 		f.write(markdown.markdown(text))
-		
-		# self.browser.load(QUrl('file:///tmp/md.html'))
-		# self.browser.load(QUrl('file:///home/biebergong/Documents/%E5%A6%82%E4%BD%95%E5%91%8A%E5%88%AB%E7%99%BE%E5%BA%A6/%E5%A6%82%E4%BD%95%E5%91%8A%E5%88%AB%E7%99%BE%E5%BA%A6.html'))
-		# self.textedit2.clean()
-		# self.textedit2.append(text)
 
 	def auto_save_(self):
 		# self.textedit1.append(open(sys.argv[1]).read())
@@ -60,9 +51,9 @@ class Md(QWidget):
 			self.text = pp.sub('  \n', text)
 			# print(text)
 			self.html = markdown.markdown(self.text)
-			with open(self.file, 'w') as f:
+			with open(self.file, 'w', encoding='utf-8') as f:
 				f.write(self.text)
-			with open(self.filename+'.html','w',encoding='utf-8') as f:
+			with open(self.filename+'~.html','w',encoding='utf-8') as f:
 				f.write(self.html)
 			# self.browser.load(QUrl('file:///tmp/md.html'))
 			time.sleep(2)
@@ -88,6 +79,11 @@ class Md(QWidget):
 	def browser_reload(self, i):
 		self.browser.reload()
 
+	def output_html(self):
+		with open(self.filename+'.html','w',encoding='utf-8') as f:
+			f.write(self.html)
+		self.show_message('HTML已保存到工作目录')
+
 	def output_pdf(self):
 		p = QPrinter()
 		p.setOutputFormat(QPrinter.PdfFormat)
@@ -110,7 +106,7 @@ class Md(QWidget):
 		# self.textedit1 = QTextEdit()
 		self.textedit1 = QPlainTextEdit()
 		# self.textedit1.zoomIn(2)
-		self.textedit1.setFont(QFont('黑体',12))
+		self.textedit1.setFont(QFont('微软雅黑',12))
 		# self.textedit1.setTextFormat(QtextEdit.PlainText)
 		# self.textedit1.resize(800,600)
 		self.textedit1.setMinimumWidth(500)
@@ -130,7 +126,7 @@ class Md(QWidget):
 		self.browser.coding.setDefaultTextEncoding('utf-8')
 		# self.browser = QWebView()
 		# self.browser.resize(100,100)
-		self.browser.load( QUrl(self.filename+'.html') )
+		self.browser.load( QUrl(self.filename+'~.html') )
 		thread = Thread(self)
 		thread.trigger.connect(self.browser_reload)
 		thread.start()
@@ -141,12 +137,12 @@ class Md(QWidget):
 		self.line_edit1.setFixedWidth(200)
 		self.line_edit1.hide()
 
-		self.find_next_button = QPushButton('v',self)
+		self.find_next_button = QPushButton('下一个',self)
 		self.find_next_button.setFocusPolicy(Qt.NoFocus)
 		self.find_next_button.hide()
 		self.find_next_button.clicked.connect(self.find_word_next)
 
-		self.find_last_button = QPushButton('^',self)
+		self.find_last_button = QPushButton('上一个',self)
 		self.find_last_button.setFocusPolicy(Qt.NoFocus)
 		self.find_last_button.hide()
 		self.find_last_button.clicked.connect(self.find_word_last)
@@ -234,14 +230,13 @@ class Md(QWidget):
 		# okbutton = QPushButton('Ok')
 		# okbutton.clicked.connect(self.print_)
 		# cancelbutton = QPushButton('Cancel')
-		self.file = sys.argv[1]
-		self.filename = '.'.join( self.file.split('.')[:-1] )
+
 
 		self.set_textedit()
 		self.set_brower()
 
 		self.message = QLabel('')
-		self.show_message('v0.1.0 written by BJ')
+		self.show_message('v0.2.0 written by BJ')
 		# self.message.setText('a')
 
 		hbox = QHBoxLayout()
@@ -290,18 +285,20 @@ class mainWindow(QMainWindow):
 		findAction.triggered.connect(md.show_find_line)
 		collectAction = QAction( QIcon(), '字数统计', self )
 		collectAction.triggered.connect(md.collect)
-		outputAction = QAction( QIcon(), '输出PDF', self )
-		# outputAction.set
-		outputAction.triggered.connect(md.output_pdf)
+		outputHtmlAction = QAction( QIcon(), '输出HTML', self )
+		outputHtmlAction.triggered.connect(md.output_html)
+		outputPdfAction = QAction( QIcon(), '输出PDF', self )
+		outputPdfAction.triggered.connect(md.output_pdf)
 		self.toolbar = self.addToolBar('output')
 		self.toolbar.setMovable(False)
 		self.toolbar.addAction(findAction)
 		self.toolbar.addAction(collectAction)
-		self.toolbar.addAction(outputAction)
+		self.toolbar.addAction(outputHtmlAction)
+		self.toolbar.addAction(outputPdfAction)
 
 
 		self.setGeometry(100, 100, 1100, 640)
-		self.setWindowTitle('Toyoung')
+		self.setWindowTitle('ToYoung')
 		self.setCentralWidget(md)
 		self.show()
 
@@ -309,4 +306,6 @@ class mainWindow(QMainWindow):
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
 	mainwindow = mainWindow()
-	sys.exit(app.exec_())
+	app.exec_()
+	os.remove( '.'.join( sys.argv[1].split('.')[:-1] ) + '~.html' )
+	sys.exit()
