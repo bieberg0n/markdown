@@ -38,17 +38,37 @@ class Md(QWidget):
 		else:
 			open(self.file, 'w')
 		self.filename = '.'.join( self.file.split('.')[:-1] )
+
+		try:
+			self.text = open(self.file).read()
+		except UnicodeDecodeError:
+			self.text = open(self.file, encoding='utf-8').read()
+		print(self.text)
+		self.html = markdown.markdown(self.text)
+		with open(self.filename+'~.html','w',encoding='utf-8') as f:
+			f.write(self.html)
+
+		self.resizeEvent = self.resize_textedit
 		self.initUI()
 
-	def auto_save_(self):
+	def resize_textedit(self,event):
+		print( self.width() )
+		self.textedit1.setMinimumWidth(self.width()/2-30)
+
+	def auto_save(self,i):
 		# self.textedit1.append(open(sys.argv[1]).read())
-		while 1:
+		# while 1:
 			# text = unicode( self.textedit1.toPlainText() )
-			text = self.textedit1.toPlainText()
-			p = re.compile('\n')
-			text = p.sub('  \n', text)
-			pp = re.compile(' +\n')
-			self.text = pp.sub('  \n', text)
+		# time.sleep(2)
+		text = self.textedit1.toPlainText()
+		p = re.compile('\n')
+		text = p.sub('  \n', text)
+		pp = re.compile(' +\n')
+		text = pp.sub('  \n', text)
+		if text == self.text:
+			pass
+		else:
+			self.text = text
 			# print(text)
 			self.html = markdown.markdown(self.text)
 			with open(self.file, 'w', encoding='utf-8') as f:
@@ -56,13 +76,12 @@ class Md(QWidget):
 			with open(self.filename+'~.html','w',encoding='utf-8') as f:
 				f.write(self.html)
 			# self.browser.load(QUrl('file:///tmp/md.html'))
-			time.sleep(2)
-			# self.browser.reload()
+			self.browser.reload()
 
-	def auto_save(self):
-		t = threading.Thread(target=self.auto_save_)
-		t.setDaemon(True)
-		t.start()
+	# def auto_save(self):
+	# 	t = threading.Thread(target=self.auto_save_)
+	# 	t.setDaemon(True)
+	# 	t.start()
 
 	def collect(self):
 		# text = self.textedit1.toPlainText()
@@ -109,14 +128,10 @@ class Md(QWidget):
 		self.textedit1.setFont(QFont('微软雅黑',12))
 		# self.textedit1.setTextFormat(QtextEdit.PlainText)
 		# self.textedit1.resize(800,600)
-		self.textedit1.setMinimumWidth(500)
-		try:
-			text = open(self.file).read()
-		except UnicodeDecodeError:
-			text = open(self.file, encoding='utf-8').read()
-		print(text)
-		self.textedit1.appendPlainText(text)
-		self.auto_save()
+		# self.textedit1.setMinimumWidth(500)
+		self.textedit1.setMinimumWidth(self.width()/2-30)
+		self.textedit1.appendPlainText(self.text)
+		# self.auto_save()
 		# self.textedit2 = QTextEdit()
 
 	def set_brower(self):
@@ -127,10 +142,12 @@ class Md(QWidget):
 		# self.browser = QWebView()
 		# self.browser.resize(100,100)
 		self.browser.load( QUrl(self.filename+'~.html') )
-		thread = Thread(self)
-		thread.trigger.connect(self.browser_reload)
-		thread.start()
 		# self.browser.load(QUrl('http://h.nimingban.com'))
+
+	def set_autosave_and_reload(self):
+		thread = Thread(self)
+		thread.trigger.connect(self.auto_save)
+		thread.start()
 
 	def set_find_line(self):
 		self.line_edit1 = QLineEdit()
@@ -234,6 +251,7 @@ class Md(QWidget):
 
 		self.set_textedit()
 		self.set_brower()
+		self.set_autosave_and_reload()
 
 		self.message = QLabel('')
 		self.show_message('v0.2.0 written by BJ')

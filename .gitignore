@@ -69,3 +69,5 @@ testqt.py
 *.pdf
 test.py
 test2.md
+cmd.md
+*.md
