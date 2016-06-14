@@ -16,6 +16,22 @@ import time
 import threading
 from bs4 import BeautifulSoup
 
+
+# h1,h2,h3,h4,h5,h6 {font-family:微软雅黑;}
+# p {font-family:黑体;}
+def add_font(html):
+	new_html = '''<html>
+	<head>
+	<style type="text/css">
+	body {font-family:Hiragino Sans GB;}
+	</style>
+	</head>
+	<body>''' + html +\
+		'''</body>
+		</html>'''
+	return new_html
+
+
 class Thread(QThread):
 	trigger = pyqtSignal(int)
 
@@ -44,7 +60,8 @@ class Md(QWidget):
 		except UnicodeDecodeError:
 			self.text = open(self.file, encoding='utf-8').read()
 		print(self.text)
-		self.html = markdown.markdown(self.text)
+		self.html = add_font( markdown.markdown(self.text) )
+		# self.html = markdown.markdown(self.text)
 		with open(self.filename+'~.html','w',encoding='utf-8') as f:
 			f.write(self.html)
 
@@ -70,7 +87,7 @@ class Md(QWidget):
 		else:
 			self.text = text
 			# print(text)
-			self.html = markdown.markdown(self.text)
+			self.html = add_font( markdown.markdown(self.text) )
 			with open(self.file, 'w', encoding='utf-8') as f:
 				f.write(self.text)
 			with open(self.filename+'~.html','w',encoding='utf-8') as f:
@@ -93,7 +110,7 @@ class Md(QWidget):
 			[ i for i in text if 19968 <= ord(i) <= 40869 ] )
 		all_zh = len(all_zh)
 		all_words = len( re.findall(r'[A-Za-z]+',text) )
-		self.show_message( '汉字与标点符号数:{0} 汉字数:{1} 单词数:{2}'.format(all_zh_and_p, all_zh, all_words) )
+		self.show_message( '汉字与标点符号数:{0} 汉字数:{1} 单词数:{2}'.format(all_zh_and_p, all_zh, all_words), 5 )
 
 	def browser_reload(self, i):
 		self.browser.reload()
@@ -101,23 +118,23 @@ class Md(QWidget):
 	def output_html(self):
 		with open(self.filename+'.html','w',encoding='utf-8') as f:
 			f.write(self.html)
-		self.show_message('HTML已保存到工作目录')
+		self.show_message('HTML已保存到工作目录', 4)
 
 	def output_pdf(self):
 		p = QPrinter()
 		p.setOutputFormat(QPrinter.PdfFormat)
 		p.setOutputFileName(self.filename+'.pdf')
 		self.browser.print(p)
-		self.show_message('PDF已保存到工作目录')
+		self.show_message('PDF已保存到工作目录', 4)
 
-	def show_message_(self, string):
+	def show_message_(self, string, timeout):
 		self.message.setText(string)
-		time.sleep(4)
+		time.sleep(timeout)
 		self.message.setText('')
 
-	def show_message(self, string):
+	def show_message(self, string, timeout):
 		# print(string)
-		t = threading.Thread( target=self.show_message_,args=(string,) )
+		t = threading.Thread( target=self.show_message_,args=(string,timeout,) )
 		t.setDaemon(True)
 		t.start()		
 
@@ -125,7 +142,7 @@ class Md(QWidget):
 		# self.textedit1 = QTextEdit()
 		self.textedit1 = QPlainTextEdit()
 		# self.textedit1.zoomIn(2)
-		self.textedit1.setFont(QFont('微软雅黑',12))
+		self.textedit1.setFont(QFont('sans-serif',12))
 		# self.textedit1.setTextFormat(QtextEdit.PlainText)
 		# self.textedit1.resize(800,600)
 		# self.textedit1.setMinimumWidth(500)
@@ -202,7 +219,7 @@ class Md(QWidget):
 		key_word = self.line_edit1.text()
 		findall = self.text.split(key_word)
 		if len(findall) == 1:
-			self.show_message('未找到!')
+			self.show_message('未找到!',4)
 			return
 		else:
 			for i,v in enumerate(findall):
@@ -224,7 +241,7 @@ class Md(QWidget):
 		key_word = self.line_edit1.text()
 		findall = self.text.split(key_word)
 		if len(findall) == 1:
-			self.show_message('未找到!')
+			self.show_message('未找到!',4)
 			return
 		else:
 			last_pos = len( key_word.join(findall[:-1]) )
@@ -254,7 +271,8 @@ class Md(QWidget):
 		self.set_autosave_and_reload()
 
 		self.message = QLabel('')
-		self.show_message('v0.2.0 written by BJ')
+		self.message.setFont(QFont('黑体',10))
+		self.show_message('v0.2.0 written by BJ',4)
 		# self.message.setText('a')
 
 		hbox = QHBoxLayout()
