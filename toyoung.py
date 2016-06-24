@@ -23,7 +23,7 @@ def add_font(html):
 	new_html = '''<html>
 	<head>
 	<style type="text/css">
-	body {font-family:Hiragino Sans GB;}
+	body {font-family:新宋体;}
 	</style>
 	</head>
 	<body>''' + html +\
@@ -48,7 +48,10 @@ class Md(QWidget):
 
 	def __init__(self, parent=None):
 		super(Md,self).__init__(parent)
-		self.file = sys.argv[1]
+		if len(sys.argv) == 1:
+			self.file = 'readme.md'
+		else:
+			self.file = sys.argv[1]
 		if os.path.isfile(self.file):
 			pass
 		else:
@@ -59,7 +62,7 @@ class Md(QWidget):
 			self.text = open(self.file).read()
 		except UnicodeDecodeError:
 			self.text = open(self.file, encoding='utf-8').read()
-		print(self.text)
+		#print(self.text)
 		self.html = add_font( markdown.markdown(self.text) )
 		# self.html = markdown.markdown(self.text)
 		with open(self.filename+'~.html','w',encoding='utf-8') as f:
@@ -142,12 +145,21 @@ class Md(QWidget):
 		# self.textedit1 = QTextEdit()
 		self.textedit1 = QPlainTextEdit()
 		# self.textedit1.zoomIn(2)
-		self.textedit1.setFont(QFont('sans-serif',12))
+		if os.name == 'nt':
+			self.textedit1.setFont(QFont('文泉驿等宽微米黑',12))
+			self.textedit1.setStyleSheet("QPlainTextEdit{ line-height: 200%; }")
+		else:
+			# self.textedit1.setFont(QFont('sans-serif',12))
+			self.textedit1.setFont(QFont('方正悠黑简体',12))
+			# self.textedit1.setFont(QFont('华文细黑',12))
 		# self.textedit1.setTextFormat(QtextEdit.PlainText)
 		# self.textedit1.resize(800,600)
 		# self.textedit1.setMinimumWidth(500)
 		self.textedit1.setMinimumWidth(self.width()/2-30)
 		self.textedit1.appendPlainText(self.text)
+		text_cursor = self.textedit1.textCursor()
+		text_cursor.setPosition(0)
+		self.textedit1.setTextCursor(text_cursor)
 		# self.auto_save()
 		# self.textedit2 = QTextEdit()
 
@@ -213,10 +225,9 @@ class Md(QWidget):
 
 	def find_word_next(self):
 		text_cursor = self.textedit1.textCursor()
-		old_pos = text_cursor.position()
-		# new_pos = re.search( self.line_edit1.text(), self.text[old_pos:] ).span()[0]
-		# print(new_pos)
 		key_word = self.line_edit1.text()
+		old_pos = text_cursor.position() - len(key_word)
+		# new_pos = re.search( self.line_edit1.text(), self.text[old_pos:] ).span()[0]
 		findall = self.text.split(key_word)
 		if len(findall) == 1:
 			self.show_message('未找到!',4)
@@ -229,16 +240,18 @@ class Md(QWidget):
 					break
 				elif new_pos > old_pos:
 					break
+			print(new_pos)
 			text_cursor.setPosition(new_pos)
+			text_cursor.setPosition( new_pos+len(key_word),
+									 QTextCursor.KeepAnchor )
 			self.textedit1.setTextCursor(text_cursor)
 			self.textedit1.setFocus()
 
 	def find_word_last(self):
 		text_cursor = self.textedit1.textCursor()
-		old_pos = text_cursor.position()
-		# new_pos = re.search( self.line_edit1.text(), self.text[old_pos:] ).span()[0]
-		# print(new_pos)
 		key_word = self.line_edit1.text()
+		print(text_cursor.selectionEnd())
+		old_pos = text_cursor.position() - len(key_word)
 		findall = self.text.split(key_word)
 		if len(findall) == 1:
 			self.show_message('未找到!',4)
@@ -251,6 +264,8 @@ class Md(QWidget):
 					break
 				last_pos = new_pos
 			text_cursor.setPosition(last_pos)
+			text_cursor.setPosition( last_pos+len(key_word),
+									 QTextCursor.KeepAnchor )
 			self.textedit1.setTextCursor(text_cursor)
 			self.textedit1.setFocus()
 
@@ -272,7 +287,7 @@ class Md(QWidget):
 
 		self.message = QLabel('')
 		self.message.setFont(QFont('黑体',10))
-		self.show_message('v0.2.0 written by BJ',4)
+		self.show_message('v0.3.1 written by BJ',4)
 		# self.message.setText('a')
 
 		hbox = QHBoxLayout()
@@ -343,5 +358,8 @@ if __name__ == '__main__':
 	app = QApplication(sys.argv)
 	mainwindow = mainWindow()
 	app.exec_()
-	os.remove( '.'.join( sys.argv[1].split('.')[:-1] ) + '~.html' )
+	if len(sys.argv) == 1:
+		os.remove( 'readme~.html' )
+	else:
+		os.remove( '.'.join( sys.argv[1].split('.')[:-1] ) + '~.html' )
 	sys.exit()
