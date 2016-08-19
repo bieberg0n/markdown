@@ -11,26 +11,11 @@ from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 from PyQt4.QtCore import *
 import re
-import markdown
+# import markdown
+import bjmd
 import time
 import threading
 from bs4 import BeautifulSoup
-
-
-# h1,h2,h3,h4,h5,h6 {font-family:微软雅黑;}
-# p {font-family:黑体;}
-def add_font(html):
-	new_html = '''<html>
-	<head>
-	<style type="text/css">
-	body {font-family:新宋体;}
-	</style>
-	</head>
-	<body>''' + html +\
-		'''</body>
-		</html>'''
-	return new_html
-
 
 class Thread(QThread):
 	trigger = pyqtSignal(int)
@@ -62,9 +47,7 @@ class Md(QWidget):
 			self.text = open(self.file).read()
 		except UnicodeDecodeError:
 			self.text = open(self.file, encoding='utf-8').read()
-		#print(self.text)
-		self.html = add_font( markdown.markdown(self.text) )
-		# self.html = markdown.markdown(self.text)
+		self.html = bjmd.bjmd(self.text)
 		with open(self.filename+'~.html','w',encoding='utf-8') as f:
 			f.write(self.html)
 
@@ -81,16 +64,12 @@ class Md(QWidget):
 			# text = unicode( self.textedit1.toPlainText() )
 		# time.sleep(2)
 		text = self.textedit1.toPlainText()
-		p = re.compile('\n')
-		text = p.sub('  \n', text)
-		pp = re.compile(' +\n')
-		text = pp.sub('  \n', text)
 		if text == self.text:
 			pass
 		else:
 			self.text = text
 			# print(text)
-			self.html = add_font( markdown.markdown(self.text) )
+			self.html = bjmd.bjmd(self.text)
 			with open(self.file, 'w', encoding='utf-8') as f:
 				f.write(self.text)
 			with open(self.filename+'~.html','w',encoding='utf-8') as f:
@@ -146,7 +125,7 @@ class Md(QWidget):
 		self.textedit1 = QPlainTextEdit()
 		# self.textedit1.zoomIn(2)
 		if os.name == 'nt':
-			self.textedit1.setFont(QFont('文泉驿等宽微米黑',12))
+			self.textedit1.setFont(QFont('方正悠黑简体',12))
 			self.textedit1.setStyleSheet("QPlainTextEdit{ line-height: 200%; }")
 		else:
 			# self.textedit1.setFont(QFont('sans-serif',12))
@@ -202,8 +181,8 @@ class Md(QWidget):
 		self.line_edit2.setFixedWidth(200)
 		self.line_edit2.hide()
 
-		self.close_find = QPushButton('X', self)
-		self.close_find.setFixedWidth(25)
+		self.close_find = QPushButton('隐藏', self)
+		self.close_find.setFixedWidth(50)
 		self.close_find.hide()
 		self.close_find.clicked.connect(self.hide_find_line)
 
@@ -287,7 +266,7 @@ class Md(QWidget):
 
 		self.message = QLabel('')
 		self.message.setFont(QFont('黑体',10))
-		self.show_message('v0.3.1 written by BJ',4)
+		self.show_message('v0.4.1 written by BJ',6)
 		# self.message.setText('a')
 
 		hbox = QHBoxLayout()
